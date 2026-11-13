@@ -1,0 +1,28 @@
+# Angular
+node_modules/
+dist/
+.angular/
+
+# Java / Maven / Spring Boot
+target/
+*.class
+*.jar
+*.war
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+application-local.properties
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
