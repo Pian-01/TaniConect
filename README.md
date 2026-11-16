@@ -26,4 +26,4 @@ TaniConnect adalah platform marketplace pertanian lokal yang menghubungkan petan
 
 ## Status
 
-Development - Initial Setup
+Development - Code Frontend & Bakcend
