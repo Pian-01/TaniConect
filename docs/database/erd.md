@@ -325,7 +325,7 @@ Menyimpan transaksi pembelian dari listing maupun purchase request.
 |---|---|---|
 | id | BIGINT | PK |
 | order_source | VARCHAR(20) | NOT NULL |
-| request_id | BIGINT | FK → purchase_requests.id, NULL |
+| request_id | BIGINT | FK → purchase_requests.id, UNIQUE, NULL |
 | accepted_offer_id | BIGINT | FK → purchase_request_offers.id, UNIQUE, NULL |
 | buyer_id | BIGINT | FK → users.id |
 | seller_id | BIGINT | FK → users.id |
