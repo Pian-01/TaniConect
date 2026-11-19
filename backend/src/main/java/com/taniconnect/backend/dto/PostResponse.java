@@ -1,4 +1,3 @@
-
 package com.taniconnect.backend.dto;
 
 import java.time.OffsetDateTime;
@@ -10,5 +9,8 @@ public record PostResponse(
     String content,
     String postType,
     OffsetDateTime createdAt,
-    OffsetDateTime updatedAt
+    OffsetDateTime updatedAt,
+    long likeCount,
+    long commentCount,
+    boolean isLikedByCurrentUser
 ) {}

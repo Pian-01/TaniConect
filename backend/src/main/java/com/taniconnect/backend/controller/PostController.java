@@ -40,8 +40,12 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<List<PostResponse>> getAllPosts(
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                postService.getAllPosts(authentication.getName())
+        );
     }
 
     @GetMapping("/me")
