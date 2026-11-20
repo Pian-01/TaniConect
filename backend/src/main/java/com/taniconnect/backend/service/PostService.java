@@ -3,12 +3,17 @@ package com.taniconnect.backend.service;
 
 import com.taniconnect.backend.dto.CreatePostRequest;
 import com.taniconnect.backend.dto.PostResponse;
+import com.taniconnect.backend.dto.UpdatePostRequest;
 import com.taniconnect.backend.entity.Post;
 import com.taniconnect.backend.entity.User;
 import com.taniconnect.backend.repository.PostRepository;
 import com.taniconnect.backend.repository.UserRepository;
 import com.taniconnect.backend.repository.PostLikeRepository;
 import com.taniconnect.backend.repository.PostCommentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +60,33 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    public Page<PostResponse> getAllPosts(
+            String username,
+            int page,
+            int size
+        ) {
+        if (page < 0 || size < 1 || size > 50) {
+            throw new IllegalArgumentException(
+                    "Page harus >= 0 dan size harus antara 1-50"
+            );
+        }
+
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() ->
+                    new RuntimeException("User tidak ditemukan"));
+
+    Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("createdAt").descending()
+        );
+
+        return postRepository
+                .findAllByOrderByCreatedAtDesc(pageable)
+                .map(post -> toResponse(post, user.getId()));
+    }
+
+    @Transactional(readOnly = true)
     public List<PostResponse> getAllPosts(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
@@ -64,6 +96,51 @@ public class PostService {
                 .stream()
                 .map(post -> toResponse(post, user.getId()))
                 .toList();
+    }
+
+    @Transactional
+    public PostResponse updatePost(
+            Long postId,
+            String username,
+            UpdatePostRequest request
+    ) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException("User tidak ditemukan"));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new RuntimeException("Post tidak ditemukan"));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException(
+                    "Anda tidak memiliki izin mengedit post ini"
+            );
+        }
+
+        post.setContent(request.content());
+        post.setPostType(request.postType());
+
+        return toResponse(post, user.getId());
+    }
+
+    @Transactional
+    public void deletePost(Long postId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException("User tidak ditemukan"));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new RuntimeException("Post tidak ditemukan"));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException(
+                    "Anda tidak memiliki izin menghapus post ini"
+            );
+        }
+
+        postRepository.delete(post);
     }
 
     @Transactional(readOnly = true)

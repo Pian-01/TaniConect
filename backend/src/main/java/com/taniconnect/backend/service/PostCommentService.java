@@ -11,6 +11,10 @@ import com.taniconnect.backend.repository.PostCommentRepository;
 import com.taniconnect.backend.repository.PostRepository;
 import com.taniconnect.backend.repository.UserRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,6 +188,50 @@ public class PostCommentService {
                         : null,
                 comment.getCreatedAt(),
                 replies
+        );
+    }
+
+    @Transactional(readOnly = true)
+public Page<CommentResponse> getComments(
+        Long postId,
+        int page,
+        int size
+) {
+    if (page < 0 || size < 1 || size > 50) {
+        throw new IllegalArgumentException(
+                "Page harus >= 0 dan size harus antara 1-50"
+        );
+    }
+
+    if (!postRepository.existsById(postId)) {
+        throw new RuntimeException("Post tidak ditemukan");
+    }
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<PostComment> rootPage = commentRepository
+            .findByPostIdAndParentCommentIsNullOrderByCreatedAtAsc(
+                    postId, pageable
+            );
+
+    List<PostComment> allComments =
+            commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+
+    Map<Long, List<PostComment>> repliesMap = allComments.stream()
+            .filter(comment -> comment.getParentComment() != null)
+            .collect(Collectors.groupingBy(
+                    comment -> comment.getParentComment().getId()
+            ));
+
+    List<CommentResponse> content = rootPage.getContent()
+            .stream()
+            .map(comment -> buildCommentTree(comment, repliesMap))
+            .toList();
+
+        return new PageImpl<>(
+            content,
+            pageable,
+            rootPage.getTotalElements()
         );
     }
 }

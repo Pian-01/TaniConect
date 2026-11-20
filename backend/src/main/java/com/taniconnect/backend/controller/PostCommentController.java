@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -41,11 +42,15 @@ public class PostCommentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CommentResponse>> getComments(
-            @PathVariable Long postId
-    ) {
-        return ResponseEntity.ok(commentService.getComments(postId));
-    }
+public ResponseEntity<Page<CommentResponse>> getComments(
+        @PathVariable Long postId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+) {
+    return ResponseEntity.ok(
+            commentService.getComments(postId, page, size)
+    );
+}
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
