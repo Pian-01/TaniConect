@@ -1,6 +1,8 @@
+
 package com.taniconnect.backend.dto;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public record PostResponse(
     Long id,
@@ -12,5 +14,6 @@ public record PostResponse(
     OffsetDateTime updatedAt,
     long likeCount,
     long commentCount,
-    boolean isLikedByCurrentUser
+    boolean isLikedByCurrentUser,
+    List<PostMediaResponse> media
 ) {}

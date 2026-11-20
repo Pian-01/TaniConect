@@ -4,12 +4,17 @@ package com.taniconnect.backend.service;
 import com.taniconnect.backend.dto.CreatePostRequest;
 import com.taniconnect.backend.dto.PostResponse;
 import com.taniconnect.backend.dto.UpdatePostRequest;
+import com.taniconnect.backend.dto.PostMediaResponse;
+
 import com.taniconnect.backend.entity.Post;
 import com.taniconnect.backend.entity.User;
+
 import com.taniconnect.backend.repository.PostRepository;
 import com.taniconnect.backend.repository.UserRepository;
 import com.taniconnect.backend.repository.PostLikeRepository;
 import com.taniconnect.backend.repository.PostCommentRepository;
+import com.taniconnect.backend.repository.PostMediaRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,17 +32,20 @@ public class PostService {
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostCommentRepository postCommentRepository;
+    private final PostMediaRepository postMediaRepository;
 
     public PostService(
-        PostRepository postRepository,
-        UserRepository userRepository,
-        PostLikeRepository postLikeRepository,
-        PostCommentRepository postCommentRepository
+            PostRepository postRepository,
+            UserRepository userRepository,
+            PostLikeRepository postLikeRepository,
+            PostCommentRepository postCommentRepository,
+            PostMediaRepository postMediaRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
         this.postCommentRepository = postCommentRepository;
+        this.postMediaRepository = postMediaRepository;
     }
 
     @Transactional
@@ -64,18 +72,18 @@ public class PostService {
             String username,
             int page,
             int size
-        ) {
+    ) {
         if (page < 0 || size < 1 || size > 50) {
             throw new IllegalArgumentException(
                     "Page harus >= 0 dan size harus antara 1-50"
             );
         }
 
-    User user = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                    new RuntimeException("User tidak ditemukan"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException("User tidak ditemukan"));
 
-    Pageable pageable = PageRequest.of(
+        Pageable pageable = PageRequest.of(
                 page,
                 size,
                 Sort.by("createdAt").descending()
@@ -150,26 +158,43 @@ public class PostService {
                         new RuntimeException("User tidak ditemukan"));
 
         return postRepository
-        .findByUserIdOrderByCreatedAtDesc(user.getId())
-        .stream()
-        .map(post -> toResponse(post, user.getId()))
-        .toList();
+                .findByUserIdOrderByCreatedAtDesc(user.getId())
+                .stream()
+                .map(post -> toResponse(post, user.getId()))
+                .toList();
     }
 
-    private PostResponse toResponse(Post post, Long currentUserId) {
-    return new PostResponse(
-            post.getId(),
-            post.getUser().getId(),
-            post.getUser().getUsername(),
-            post.getContent(),
-            post.getPostType(),
-            post.getCreatedAt(),
-            post.getUpdatedAt(),
-            postLikeRepository.countByPostId(post.getId()),
-            postCommentRepository.countByPostId(post.getId()),
-            postLikeRepository.existsByPostIdAndUserId(
-                    post.getId(), currentUserId
-            )
+    private PostResponse toResponse(
+            Post post,
+            Long currentUserId
+    ) {
+        List<PostMediaResponse> media = postMediaRepository
+                .findByPostIdOrderByDisplayOrderAsc(post.getId())
+                .stream()
+                .map(item -> new PostMediaResponse(
+                        item.getId(),
+                        post.getId(),
+                        item.getMediaUrl(),
+                        item.getMediaType(),
+                        item.getDisplayOrder(),
+                        item.getCreatedAt()
+                ))
+                .toList();
+
+        return new PostResponse(
+                post.getId(),
+                post.getUser().getId(),
+                post.getUser().getUsername(),
+                post.getContent(),
+                post.getPostType(),
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                postLikeRepository.countByPostId(post.getId()),
+                postCommentRepository.countByPostId(post.getId()),
+                postLikeRepository.existsByPostIdAndUserId(
+                        post.getId(), currentUserId
+                ),
+                media
         );
     }
 }
