@@ -14,6 +14,7 @@ public record PostResponse(
     OffsetDateTime updatedAt,
     long likeCount,
     long commentCount,
+    long shareCount,
     boolean isLikedByCurrentUser,
     List<PostMediaResponse> media
 ) {}

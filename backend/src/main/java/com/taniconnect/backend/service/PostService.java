@@ -14,6 +14,7 @@ import com.taniconnect.backend.repository.UserRepository;
 import com.taniconnect.backend.repository.PostLikeRepository;
 import com.taniconnect.backend.repository.PostCommentRepository;
 import com.taniconnect.backend.repository.PostMediaRepository;
+import com.taniconnect.backend.repository.PostShareRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,19 +34,22 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final PostCommentRepository postCommentRepository;
     private final PostMediaRepository postMediaRepository;
+    private final PostShareRepository postShareRepository;
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
             PostLikeRepository postLikeRepository,
             PostCommentRepository postCommentRepository,
-            PostMediaRepository postMediaRepository
+            PostMediaRepository postMediaRepository,
+            PostShareRepository postShareRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
         this.postCommentRepository = postCommentRepository;
         this.postMediaRepository = postMediaRepository;
+        this.postShareRepository = postShareRepository;
     }
 
     @Transactional
@@ -191,6 +195,7 @@ public class PostService {
                 post.getUpdatedAt(),
                 postLikeRepository.countByPostId(post.getId()),
                 postCommentRepository.countByPostId(post.getId()),
+                postShareRepository.countByPostId(post.getId()),
                 postLikeRepository.existsByPostIdAndUserId(
                         post.getId(), currentUserId
                 ),
