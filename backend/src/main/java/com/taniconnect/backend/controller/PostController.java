@@ -58,6 +58,23 @@ public class PostController {
         );
     }
 
+
+        @GetMapping("/following")
+        public ResponseEntity<Page<PostResponse>> getFollowingPosts(
+                Authentication authentication,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "10") int size
+        ) {
+        return ResponseEntity.ok(
+                postService.getFollowingPosts(
+                            authentication.getName(),
+                            page,
+                            size
+                    )
+                );
+        }
+
+
     @GetMapping("/me")
     public ResponseEntity<List<PostResponse>> getMyPosts(
             Authentication authentication
