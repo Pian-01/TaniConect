@@ -93,42 +93,65 @@ public class PostService {
                 Sort.by("createdAt").descending()
         );
 
-        return postRepository
-                .findAllByOrderByCreatedAtDesc(pageable)
-                .map(post -> toResponse(post, user.getId()));
-    }
+                return postRepository
+                        .findAllByOrderByCreatedAtDesc(pageable)
+                        .map(post -> toResponse(post, user.getId()));
+           }
 
+
+                @Transactional(readOnly = true)
+        public Page<PostResponse> getFollowingPosts(
+                String username,
+                int page,
+                int size
+        ) {
+            if (page < 0 || size < 1 || size > 50) {
+                throw new IllegalArgumentException(
+                 "Page harus >= 0 dan size harus antara 1-50"
+                );
+        }
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() ->
+                            new RuntimeException("User tidak ditemukan"));
+
+            Pageable pageable = PageRequest.of(page, size);
+
+        // Debug sementara
+        System.out.println("CURRENT USER ID: " + user.getId());
+            System.out.println("FOLLOWING POSTS COUNT: " +
+                    postRepository.findFollowingPosts(
+                            user.getId(),
+                            PageRequest.of(0, 10)
+                    ).getTotalElements());
+
+        return postRepository
+                .findFollowingPosts(user.getId(), pageable)
+                    .map(post -> toResponse(post, user.getId()));
+        }
 
         @Transactional(readOnly = true)
-public Page<PostResponse> getFollowingPosts(
-        String username,
-        int page,
-        int size
-) {
-    if (page < 0 || size < 1 || size > 50) {
-        throw new IllegalArgumentException(
-                "Page harus >= 0 dan size harus antara 1-50"
-        );
-    }
+        public Page<PostResponse> getForYouPosts(
+                String username,
+                int page,
+                int size
+        ) {
+            if (page < 0 || size < 1 || size > 50) {
+                throw new IllegalArgumentException(
+                        "Page harus >= 0 dan size harus antara 1-50"
+                );
+        }
 
-    User user = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                    new RuntimeException("User tidak ditemukan"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                            new RuntimeException("User tidak ditemukan"));
 
-    Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
 
-    // Debug sementara
-    System.out.println("CURRENT USER ID: " + user.getId());
-    System.out.println("FOLLOWING POSTS COUNT: " +
-            postRepository.findFollowingPosts(
-                    user.getId(),
-                    PageRequest.of(0, 10)
-            ).getTotalElements());
-
-    return postRepository
-            .findFollowingPosts(user.getId(), pageable)
-            .map(post -> toResponse(post, user.getId()));
-}
+        return postRepository
+                    .findForYouPosts(pageable)
+                    .map(post -> toResponse(post, user.getId()));
+        }
 
     @Transactional
     public PostResponse updatePost(

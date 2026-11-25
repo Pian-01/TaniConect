@@ -74,6 +74,21 @@ public class PostController {
                 );
         }
 
+    @GetMapping("/for-you")
+        public ResponseEntity<Page<PostResponse>> getForYouPosts(
+                Authentication authentication,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "10") int size
+        ) {
+        return ResponseEntity.ok(
+            postService.getForYouPosts(
+                    authentication.getName(),
+                    page,
+                    size
+                )
+           );
+        }    
+
 
     @GetMapping("/me")
     public ResponseEntity<List<PostResponse>> getMyPosts(

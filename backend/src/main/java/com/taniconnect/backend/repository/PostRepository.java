@@ -36,4 +36,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("userId") Long userId,
             Pageable pageable
     );
+
+    // Feed For You
+    @Query("""
+        SELECT p FROM Post p
+        ORDER BY
+        (
+            SELECT COUNT(l)
+            FROM PostLike l
+            WHERE l.post = p
+        ) +
+        (
+            SELECT COUNT(c)
+            FROM PostComment c
+            WHERE c.post = p
+        ) DESC,
+        p.createdAt DESC
+    """)
+        Page<Post> findForYouPosts(Pageable pageable);
 }
