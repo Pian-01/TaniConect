@@ -11,6 +11,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     List<Report> findByStatusOrderByCreatedAtDesc(String status);
 
+    List<Report> findAllByOrderByCreatedAtDesc();
+
     boolean existsByReporterIdAndPostId(Long reporterId, Long postId);
 
     boolean existsByReporterIdAndCommentId(Long reporterId, Long commentId);

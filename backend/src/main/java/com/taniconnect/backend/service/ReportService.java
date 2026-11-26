@@ -1,13 +1,14 @@
-
 package com.taniconnect.backend.service;
 
 import com.taniconnect.backend.dto.CreateReportRequest;
 import com.taniconnect.backend.dto.ReportResponse;
 import com.taniconnect.backend.entity.*;
 import com.taniconnect.backend.repository.*;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -71,6 +72,33 @@ public class ReportService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<ReportResponse> getAllReports() {
+        return reportRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public ReportResponse updateReportStatus(
+        Long reportId,
+        String username,
+        String status
+    ) {
+    Report report = reportRepository.findById(reportId)
+            .orElseThrow(() -> new RuntimeException("Laporan tidak ditemukan"));
+
+    User admin = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Admin tidak ditemukan"));
+
+        report.setStatus(status);
+        report.setReviewedBy(admin);
+        report.setReviewedAt(LocalDateTime.now());
+
+        return toResponse(reportRepository.save(report));
+    }   
 
     private ReportResponse toResponse(Report report) {
         Long targetId = switch (report.getTargetType()) {
